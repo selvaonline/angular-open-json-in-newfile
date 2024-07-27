@@ -1,24 +1,37 @@
 import { Component, OnInit } from '@angular/core';
-import { JsonService } from '../json.service';
+import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-json-viewer',
-  templateUrl: './json-viewer.component.html',
-  styleUrls: ['./json-viewer.component.css']
+  template: '',
+  styles: []
 })
 export class JsonViewerComponent implements OnInit {
-  jsonData: any;
+  jsonFilePath: string = '';
 
-  constructor(private jsonService: JsonService) { }
+  constructor(private http: HttpClient, private route: ActivatedRoute) {}
 
-  ngOnInit(): void {
-    this.loadJson();
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      this.jsonFilePath = params['filePath'] || '/assets/data.json';
+
+      this.http.get<any>(this.jsonFilePath).subscribe({
+        next: (data) => {
+          this.openInNewWindow(data);
+        },
+        error: (error) => {
+          console.error('Error loading JSON:', error);
+        }
+      });
+    });
   }
 
-  loadJson() {
-    const filePath = 'assets/your-json-file.json'; // Adjust the path to your JSON file
-    this.jsonService.getJsonFile(filePath).subscribe(data => {
-      this.jsonData = data;
-    });
+  openInNewWindow(data: any) {
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write('<pre>' + JSON.stringify(data, null, 2) + '</pre>');
+      newWindow.document.close(); 
+    }
   }
 }
