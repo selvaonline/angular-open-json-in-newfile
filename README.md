@@ -1,0 +1,1 @@
+# angular-open-json-in-newfile
